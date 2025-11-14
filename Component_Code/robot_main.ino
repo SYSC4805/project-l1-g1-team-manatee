@@ -15,6 +15,11 @@ const int R_F_PWM = 7; // Right Front Motor PWM Pin
 
 const int R_R_DIR = 6; // Right Rear Motor Direction Pin
 const int R_R_PWM = 8; // Right Rear Motor PWM Pin
+// --- Constants for Motor Control ---
+const int MAX_SPEED = 255;      // The max PWM value for analogWrite
+const int FORWARD_SPEED = 200; // A PWM value for forward movement (0-255)
+const int TURN_SPEED = 150;    // A PWM value for turning (0-255)
+
 
 
 // Pin for Line Follower Sensor
@@ -56,67 +61,55 @@ enum RobotState {
 };
 RobotState currentState = IDLE;
 
-
-
-
 // Motor Control Functions
-void setMotorSpeed(int dirPin, int pwmPin, float speed){
-  // control the motor speed
-  // speed below 30 cm/s
-  if (speed > MAX_SPEED) {
-    speed = MAX_SPEED;
-  }
-  if (speed < -MAX_SPEED) {
-    speed = -MAX_SPEED;
-  }
-
-  if (speed > 0) {
-    digitalWrite(dirPin, HIGH); // One direction
+void setMotorSpeed(int dirPin, int pwmPin, int speed_pwm) {
+  // Set the direction based on the sign of the speed
+  if (speed_pwm >= 0) {
+    digitalWrite(dirPin, HIGH); // Set one direction
   } else {
-    digitalWrite(dirPin, LOW); // The other direction
+    digitalWrite(dirPin, LOW);  // Set the opposite direction
   }
   
-  int pwmValue = map(abs(speed), 0, MAX_SPEED, 0, MAX_PWM);
-  analogWrite(pwmPin, pwmValue);
+  // Write the absolute PWM value to the motor
+  analogWrite(pwmPin, abs(speed_pwm));
 }
 
-void setLeftMotor(float speed){
-    setMotorSpeed(L_F_DIR, L_F_PWM, speed);
-    setMotorSpeed(L_R_DIR, L_R_PWM, speed);
 
+void setLeftMotor(int speed_pwm) {
+    setMotorSpeed(L_F_DIR, L_F_PWM, speed_pwm);
+    setMotorSpeed(L_R_DIR, L_R_PWM, speed_pwm);
 }
 
-void setRightMotor(float speed){
-    setMotorSpeed(R_F_DIR, R_F_PWM, speed);
-    setMotorSpeed(R_R_DIR, R_R_PWM, speed);
+
+void setRightMotor(int speed_pwm) {
+    setMotorSpeed(R_F_DIR, R_F_PWM, speed_pwm);
+    setMotorSpeed(R_R_DIR, R_R_PWM, speed_pwm);
 }
 
-void moveForward(){
-  // Move the robot forward at a specified speed
-    setLeftMotor(MAX_SPEED);
-    setRightMotor(MAX_SPEED);
+
+void moveForward() {
+    setLeftMotor(FORWARD_SPEED);
+    setRightMotor(FORWARD_SPEED);
 }
 
-void moveBackward(){
-  // Move the robot backward at a specified speed
-    setLeftMotor(-MAX_SPEED);
-    setRightMotor(-MAX_SPEED);
+
+void moveBackward() {
+    setLeftMotor(-FORWARD_SPEED);
+    setRightMotor(-FORWARD_SPEED);
 }
 
-void turnLeft(){
-  // Turn the robot left
-    setLeftMotor(-MAX_SPEED/2);
-    setRightMotor(MAX_SPEED/2);
+
+void turnLeft() {
+    setLeftMotor(-TURN_SPEED);
+    setRightMotor(TURN_SPEED);
 }
 
-void turnRight(){
-  // Turn the robot right
-    setLeftMotor(MAX_SPEED/2);  
-    setRightMotor(-MAX_SPEED/2);
+void turnRight() {
+    setLeftMotor(TURN_SPEED);  
+    setRightMotor(-TURN_SPEED);
 }
 
-void stopMotors(){
-  // Stop all motors
+void stopMotors() {
     setLeftMotor(0);
     setRightMotor(0);
 } 
@@ -125,6 +118,8 @@ void moveAround(){
     // Move the robot around in the arena
     moveForward();
 }
+
+
 
 // Line Sensor Functions
 void readLineSensors(){
