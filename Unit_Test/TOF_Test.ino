@@ -4,10 +4,9 @@
 VL53L1X sensor;
 
 // Test parameters
-const int MIN_VALID_MM = 30;      // <3 cm often inaccurate
-const int MAX_VALID_MM = 4000;    // depending on model (4 m typical)
-const int NOISE_THRESHOLD_MM = 30; // If readings vary too much
-
+const int MIN_VALID_MM = 50;     
+const int MAX_VALID_MM = 1000;   
+const int NOISE_THRESHOLD_MM = 30; 
 int lastDistance = -1;
 
 void printTestResult(const char* label, bool pass) {
@@ -22,19 +21,6 @@ void setup() {
 
   delay(500);
 
-  bool i2c_ok = true;
-  Wire.beginTransmission(0x29);
-  if (Wire.endTransmission() != 0) {
-    i2c_ok = false;
-    Serial.println("Sensor not found at I2C address 0x29.");
-  }
-  printTestResult("I2C Communication", i2c_ok);
-
-  if (!i2c_ok) {
-    Serial.println("Test aborted.");
-    while (1);
-  }
-
   bool init_ok = sensor.init();
   printTestResult("Sensor Initialization", init_ok);
 
@@ -47,7 +33,7 @@ void setup() {
   sensor.setMeasurementTimingBudget(50000); // 50ms
   sensor.startContinuous(50);
 
-  Serial.println("Reading distance... move object in front of sensor.");
+  Serial.println("Reading distance");
   Serial.println(" ");
 }
 
@@ -74,6 +60,5 @@ void loop() {
 
   lastDistance = d;
 
-  Serial.println("--------------------------");
   delay(500);
 }

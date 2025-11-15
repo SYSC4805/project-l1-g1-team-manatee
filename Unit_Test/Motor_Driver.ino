@@ -12,9 +12,6 @@ void setup() {
   pinMode(2, INPUT_PULLUP);
 
   attachInterrupt(digitalPinToInterrupt(2), time_ISR, FALLING);
-
-  Serial.println("\n=== WHEEL ENCODER UNIT TEST ===");
-  Serial.println("Rotate the wheel to generate pulses...");
 }
 
 void loop() {
@@ -34,7 +31,6 @@ void loop() {
     Serial.print("Pulse Period (ms): ");
     Serial.print(pulsePeriod);
 
-    // PASS: should be between ~50–60 ms at full speed
     bool pass = (pulsePeriod >= 25 && pulsePeriod <= 200);
     Serial.print(" | Test: ");
     Serial.println(pass ? "PASS" : "FAIL");

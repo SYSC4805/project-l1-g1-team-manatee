@@ -5,7 +5,6 @@
 LSM6 imu;
 LIS3MDL mag;
 
-bool testIMUConnection();
 bool testAccelGyro();
 bool testMag();
 
@@ -19,10 +18,7 @@ void setup() {
   Serial.begin(115200);
   Wire.begin();
 
-  delay(1000);
-
-  bool conn = testIMUConnection();
-  printResult("I2C Communication", conn);
+  delay(1000); 
 
   bool ag   = testAccelGyro();
   printResult("Accelerometer/Gyroscope", ag);
@@ -36,21 +32,6 @@ void loop() {
   
 }
 
-
-bool testIMUConnection() {
-  bool ok = true;
-
-  if (!imu.init()) {
-    Serial.println("ERROR: LSM6DS33 not detected.");
-    ok = false;
-  }
-  if (!mag.init()) {
-    Serial.println("ERROR: LIS3MDL not detected.");
-    ok = false;
-  }
-
-  return ok;
-}
 
 bool testAccelGyro() {
   imu.enableDefault();

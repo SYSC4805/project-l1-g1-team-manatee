@@ -1,8 +1,3 @@
-// -------------------------------------------------------------
-// 3-Sensor Line Follower - Unit Test
-// Detects black tape over a white surface
-// -------------------------------------------------------------
-
 const int LEFT_SENSOR_PIN   = 11;
 const int CENTER_SENSOR_PIN = 12;
 const int RIGHT_SENSOR_PIN  = 13;
@@ -14,10 +9,6 @@ void setup() {
   pinMode(CENTER_SENSOR_PIN, INPUT);
   pinMode(RIGHT_SENSOR_PIN, INPUT);
 
-  Serial.println("=== 3-Sensor Line Follower Unit Test ===");
-  Serial.println("LOW = Black line detected");
-  Serial.println("HIGH = White surface detected");
-  Serial.println("-------------------------------------");
 }
 
 void loop() {

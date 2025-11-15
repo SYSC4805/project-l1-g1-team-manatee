@@ -4,9 +4,9 @@ volatile unsigned long t = 0;
 volatile unsigned long t_old = 0;
 volatile boolean captureFlag = 0;
 
-const int MIN_VALID_MS = 25;     // Debounce threshold (ignore noise)
-const int MAX_VALID_MS = 2000;   // Wheel cannot reasonably be slower
-const int RPM_TOOTH_COUNT = 1;   // Change if more teeth per revolution
+const int MIN_VALID_MS = 25;   
+const int MAX_VALID_MS = 2000;   
+const int RPM_TOOTH_COUNT = 1;   
 
 unsigned long pulsePeriod = 0;
 float rpm = 0;
