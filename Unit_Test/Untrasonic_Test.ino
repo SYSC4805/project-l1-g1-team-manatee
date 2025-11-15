@@ -3,7 +3,7 @@
 
 const float SOUND_SPEED = 0.0343f; // cm/us
 const int MIN_VALID_CM = 3;        // physical limit of HC-SR04
-const int MAX_VALID_CM = 400;      // 4 meters
+const int MAX_VALID_CM = 100;      // 4 meters
 const int STABILITY_THRESHOLD = 10; // cm variation allowed
 
 long lastDistance = -1;
