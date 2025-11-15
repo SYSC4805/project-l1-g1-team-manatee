@@ -26,11 +26,11 @@ void loop() {
   int right  = digitalRead(RIGHT_SENSOR_PIN);
 
   Serial.print("Left: ");
-  Serial.print(left == LOW ? "BLACK ✔" : "WHITE ✘");
+  Serial.print(left == LOW ? "BLACK O" : "WHITE X");
   Serial.print(" | Center: ");
-  Serial.print(center == LOW ? "BLACK ✔" : "WHITE ✘");
+  Serial.print(center == LOW ? "BLACK O" : "WHITE X");
   Serial.print(" | Right: ");
-  Serial.println(right == LOW ? "BLACK ✔" : "WHITE ✘");
+  Serial.println(right == LOW ? "BLACK O" : "WHITE X");
 
   delay(500); // update every 0.5s
 }

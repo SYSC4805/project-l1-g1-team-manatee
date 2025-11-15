@@ -19,10 +19,10 @@ void loop() {
   int sensorValue = digitalRead(IR_PIN);
 
   if (sensorValue == LOW) {
-    Serial.println("PASS: Obstacle detected ✔");
+    Serial.println("PASS: Obstacle detected");
   } else {
-    Serial.println("FAIL: No obstacle ✘");
+    Serial.println("FAIL: No obstacle");
   }
 
-  delay(500); // slow down output
+  delay(500); 
 }
