@@ -5,19 +5,30 @@ VL53L1X sensor;
 
 void setup()
 {
-  while (!Serial) {}
   Serial.begin(115200);
+  
+  
+  delay(1500);
+
   Wire.begin();
-  Wire.setClock(400000); // 400 kHz I2C
+  Wire.setClock(400000); 
 
-  sensor.setTimeout(500);
-  if (!sensor.init())
+  int retryCount = 0;
+  while (!sensor.init())
   {
-    Serial.println("Failed to detect and initialize sensor!");
-    while (1);
+    Serial.print("Failed to detect sensor! Retrying (");
+    Serial.print(retryCount++);
+    Serial.println(")...");
+    
+    Wire.end();
+    delay(100);
+    Wire.begin();
+    delay(100);
   }
+  
+  Serial.println("Sensor initialized successfully!");
 
-
+ 
   sensor.setDistanceMode(VL53L1X::Short);
   sensor.setMeasurementTimingBudget(20000); // minimum for short mode = 20 ms
 
@@ -34,7 +45,9 @@ void loop()
   }
 
   if (distance > 0 && distance < 50) {
-    stopMotors();
+    Serial.println("STOP");
+    Serial.print(millis());
+    Serial.println("ms");
   } else {
 
   }
