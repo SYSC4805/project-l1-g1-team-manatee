@@ -1,103 +1,76 @@
 #include <Arduino.h>
-#include <Wire.h>
-#include <LSM6.h>
-LSM6 imu;
 
-// Pin for imu, motors and encoders
-const int L_F_DIR = 1; // Left Front Motor Direction Pin
-const int L_F_PWM = 2; // Left Front Motor PWM Pin
+// --- 1. Pin Definitions ---
 
-const int L_R_DIR = 3; // Left Rear Motor Direction Pin
-const int L_R_PWM = 4; // Left Rear Motor PWM Pin
+// Motor Pins
+const int L_F_DIR = 51; // Left Front Motor Direction
+const int L_F_PWM = 47; // Left Front Motor PWM
+const int L_R_DIR = 46; // Left Rear Motor Direction
+const int L_R_PWM = 50; // Left Rear Motor PWM
+const int R_F_DIR = 53; // Right Front Motor Direction
+const int R_F_PWM = 49; // Right Front Motor PWM
+const int R_R_DIR = 48; // Right Rear Motor Direction
+const int R_R_PWM = 52; // Right Rear Motor PWM
 
-const int R_F_DIR = 5; // Right Front Motor Direction Pin
-const int R_F_PWM = 7; // Right Front Motor PWM Pin
-
-const int R_R_DIR = 6; // Right Rear Motor Direction Pin
-const int R_R_PWM = 8; // Right Rear Motor PWM Pin
-// --- Constants for Motor Control ---
-const int MAX_SPEED = 255;      // The max PWM value for analogWrite
-const int FORWARD_SPEED = 200; // A PWM value for forward movement (0-255)
-const int TURN_SPEED = 150;    // A PWM value for turning (0-255)
-
-
-
-// Pin for Line Follower Sensor
-const int LINE_SENSOR_LEFT = A0; 
+// Line Sensor Pins
+const int LINE_SENSOR_LEFT = A2; 
 const int LINE_SENSOR_CENTER = A1; 
-const int LINE_SENSOR_RIGHT = A2; 
-// Parameters for line sensor 
+const int LINE_SENSOR_RIGHT = A0; 
+
+// --- 2. Constants & Variables ---
+
+// Motor Speeds
+const int MAX_SPEED = 255;      // Max PWM
+const int FORWARD_SPEED = 128;  // Default forward speed
+const int TURN_SPEED = 170;     // Turning speed (increased slightly for better torque)
+
+// Line Sensor Thresholds
+const int BORDER_THRESHOLD = 875; 
 int leftValue = 0;
 int centerValue = 0;
 int rightValue = 0;
-int borderTriggered = 0; // Flag to indicate border detection, 1-left, 2-right, 3-center
-
-// Pin for Ultrasonic Sensor and Infrared Sensor
-
-
-// Pin for IMU (I2C)
-// On most Arduino boards (Uno/Nano) SDA = , SCL = 
-//const int IMU_SDA = ;
-//const int IMU_SCL = ;
-
-
-// Declare the variables
-const float MAX_SPEED = 30.0; // cm/s
-const int MAX_PWM = 255; // Adjust the PWM value if the actual max speed
-const int BORDER_THRESHOLD = 500; 
-
-// IMU Variables
-float currentAngle = 0.0;      // The robot's current angle in degrees
-float gyroZ_offset = 0.0;      // Gyroscope's Z-axis offset for calibration
-unsigned long lastIMUReadTime = 0;
+int borderTriggered = 0; // 1-left, 2-right, 3-center
 
 // Robot States
 enum RobotState {
     IDLE,
-    PLOWING_SNOW, // Plow the snow cubes when snow cubes are detected
-    MOVING_AROUND, // Move around in the arena
-    AVOIDING_BORDER,
-  
+    MOVING_AROUND,   // Default moving state
+    AVOIDING_BORDER  // Triggered by line sensor
 };
-RobotState currentState = IDLE;
+RobotState currentState = IDLE; // Start in IDLE or MOVING_AROUND based on preference
 
-// Motor Control Functions
+// --- 3. Motor Functions ---
+
 void setMotorSpeed(int dirPin, int pwmPin, int speed_pwm) {
-  // Set the direction based on the sign of the speed
+  // Set direction
   if (speed_pwm >= 0) {
-    digitalWrite(dirPin, HIGH); // Set one direction
+    digitalWrite(dirPin, LOW); 
   } else {
-    digitalWrite(dirPin, LOW);  // Set the opposite direction
+    digitalWrite(dirPin, HIGH);  
   }
-  
-  // Write the absolute PWM value to the motor
+  // Set PWM
   analogWrite(pwmPin, abs(speed_pwm));
 }
-
 
 void setLeftMotor(int speed_pwm) {
     setMotorSpeed(L_F_DIR, L_F_PWM, speed_pwm);
     setMotorSpeed(L_R_DIR, L_R_PWM, speed_pwm);
 }
 
-
 void setRightMotor(int speed_pwm) {
     setMotorSpeed(R_F_DIR, R_F_PWM, speed_pwm);
     setMotorSpeed(R_R_DIR, R_R_PWM, speed_pwm);
 }
-
 
 void moveForward() {
     setLeftMotor(FORWARD_SPEED);
     setRightMotor(FORWARD_SPEED);
 }
 
-
 void moveBackward() {
     setLeftMotor(-FORWARD_SPEED);
     setRightMotor(-FORWARD_SPEED);
 }
-
 
 void turnLeft() {
     setLeftMotor(-TURN_SPEED);
@@ -115,204 +88,115 @@ void stopMotors() {
 } 
 
 void moveAround(){
-    // Move the robot around in the arena
     moveForward();
 }
 
+// --- 4. Sensor Functions ---
 
-
-// Line Sensor Functions
 void readLineSensors(){
-    // Read the line follower sensors
     leftValue = analogRead(LINE_SENSOR_LEFT);
     centerValue = analogRead(LINE_SENSOR_CENTER);
     rightValue = analogRead(LINE_SENSOR_RIGHT);
-    // Process the sensor values as needed
-}
-
-//IMU Functions
-void readIMU(){
-    // Read the IMU sensor values
-    imu.read();
-
-    // Get the current time in microseconds 
-    unsigned long currentTime = micros();
     
-    // Skip the first loop to get a valid deltaTime and avoid a large initial jump
-    if (lastIMUReadTime == 0) {
-        lastIMUReadTime = currentTime;
-        return;
-    }
-
-    // Calculate time difference in seconds
-    float deltaTime = (currentTime - lastIMUReadTime) / 1000000.0; 
-    lastIMUReadTime = currentTime; // Update the time for the next loop
-
-    // Get the angular velocity around Z-axis (in degrees per second) and correct for drift
-    float gyroZ_dps = imu.calcGyro(imu.gz) - gyroZ_offset;
-
-    // Integrate the angular velocity to get the angle change
-    currentAngle += gyroZ_dps * deltaTime;
+    // Debugging: 
+    Serial.print("L:"); Serial.print(leftValue);
+    Serial.print(" C:"); Serial.print(centerValue);
+    Serial.print(" R:"); Serial.println(rightValue);
 }
 
-void calibrateIMU() {
-    Serial.println("Calibrating IMU... Keep the robot still.");
-    float totalGyroZ = 0;
-    const int samples = 500;
-    for (int i = 0; i < samples; i++) {
-        imu.read();
-        totalGyroZ += imu.calcGyro(imu.gz);
-        delay(3);
-    }
-    gyroZ_offset = totalGyroZ / samples;
-    Serial.print("Calibration complete. Gyro Z offset (dps): ");
-    Serial.println(gyroZ_offset);
-}
-
-
-
-
-
-// Ultrasonic and Infrared Sensor Functions
-void readUltrasonicSensor(){
-    // Read the ultrasonic sensor value
-}
-void readInfraredSensor(){
-    // Read the infrared sensor value
-}
-
-
-
-// Border Checking and Avoidance
 void checkBorders(){
-    // Check if the robot is close to the borders using line follower sensors
+    // Only check borders if we are currently moving normally
     if (currentState != MOVING_AROUND) {
-        return; // Only check for borders when moving normally
+        return; 
     }
-    borderTriggered = 0; // Reset border trigger flag
+    
+    borderTriggered = 0; 
 
+    // Logic: Assuming HIGHER value means LINE DETECTED (Black line usually gives high analog value on some sensors)
+    // If your sensor gives LOW value on black line, change '>' to '<'
     if (leftValue > BORDER_THRESHOLD) {
-        // Left border detected
-        borderTriggered = 1;
-        
-
+        borderTriggered = 1; // Left
     } else if (rightValue > BORDER_THRESHOLD) {
-        // Right border detected
-        borderTriggered = 2;
-
+        borderTriggered = 2; // Right
     } else if (centerValue > BORDER_THRESHOLD) {
-        // Center border detected
-        borderTriggered = 3;
+        borderTriggered = 3; // Center
     }
     
     if (borderTriggered != 0) {
         currentState = AVOIDING_BORDER;
     }
-    
-
 }
+
+// --- 5. State Machine ---
 
 void stateMachine(){
   switch (currentState) {
 
     case MOVING_AROUND:
-        // Move forward
         moveAround();
+        checkBorders();
         break;
 
     case AVOIDING_BORDER:
-        // Stop and turn away from the border
+        Serial.println("Border Detected! Avoiding...");
         stopMotors();
+        delay(100); // Short pause
+        
+        // 1. Back up
         moveBackward();
-        delay(300);
+        delay(1000); 
 
+        // 2. Turn away
         if (borderTriggered == 1) {
-            // Left border detected, turn right
+            // Left sensor hit -> Turn Right
             turnRight();
         } else if (borderTriggered == 2) {
-            // Right border detected, turn left
+            // Right sensor hit -> Turn Left
             turnLeft();
-        } else if (borderTriggered == 3) {
-            // Center border detected, turn randomly
-            if (random(0, 2) == 0) {
-                turnLeft();
-            } else {
-                turnRight();
-            }
+        } else {
+            // Center hit -> Random Turn
+            //if (random(0, 2) == 0) turnLeft(); else turnRight();
+            turnRight();
         }
-        delay(1000); // adjust the delay
+        delay(2000); // Turn duration
         
         stopMotors();
-        delay(50);
-        borderTriggered = 0; // Reset border trigger
-        currentState = MOVING_AROUND; // Resume moving around
-        break;
-
-    case PLOWING_SNOW:
-        // Logic for plowing snow cubes
+        delay(100);
+        
+        // 3. Reset
+        borderTriggered = 0; 
+        currentState = MOVING_AROUND; 
         break;
 
     case IDLE:
-        // Do nothing
         stopMotors();
         break;
-
   }
 }
 
-
-void obstacleDetection(){
-    // Use ultrasonic and infrared sensors to detect obstacles
-    // The ultrasonic at top to detect large obstacles
-    // The infrared at low position to detect small obstacles(snow cubes)
-    // At a specific range if both sensors or only low sensor detect the obstacle, there is a snow cube.
-    // If only the top ultrasonic sensor detect the obstacle, there is a large obstacle.
-}
-
-
+// --- 6. Setup & Loop ---
 
 void setup() {
-  
   Serial.begin(9600); 
-  Serial.println("Setup starting...");
-  randomSeed(millis());
-
-  // Initialize IMU
-  Wire.begin();
-  if (!imu.init()) {
-      Serial.println("Failed to detect and initialize IMU!");
-      while (1); 
-  }
-  imu.enableDefault();
-  Serial.println("IMU initialized.");
-  calibrateIMU();
- 
-  // Set motor control pins as outputs
-  pinMode(L_F_DIR, OUTPUT);
-  pinMode(L_F_PWM, OUTPUT);
-  pinMode(L_R_DIR, OUTPUT);
-  pinMode(L_R_PWM, OUTPUT);
-  pinMode(R_F_DIR, OUTPUT);
-  pinMode(R_F_PWM, OUTPUT);
-  pinMode(R_R_DIR, OUTPUT);
-  pinMode(R_R_PWM, OUTPUT);
-
-
-  // watchdog timer setup
-  WDT_Enable(WDT, WDT_MR_WDV(4000) | WDT_MR_WDFIEN | WDT_MR_WDRSTEN | WDT_MR_WDDBGHLT);
+  Serial.println("Motor & Line Sensor Test Starting...");
   
-  currentState = MOVING_AROUND;
-  
+  randomSeed(analogRead(A5)); // Use an unconnected pin for random seed
+
+  // Motor Pins Setup
+  pinMode(L_F_DIR, OUTPUT); pinMode(L_F_PWM, OUTPUT);
+  pinMode(L_R_DIR, OUTPUT); pinMode(L_R_PWM, OUTPUT);
+  pinMode(R_F_DIR, OUTPUT); pinMode(R_F_PWM, OUTPUT);
+  pinMode(R_R_DIR, OUTPUT); pinMode(R_R_PWM, OUTPUT);
+
+  // Start moving immediately for test
+  currentState = MOVING_AROUND; 
 }
 
 void loop() {
-  // Reset Watchdog Timer
-  WDT_Restart(WDT);
-  
-  readIMU();
   readLineSensors();
   
-  checkBorders();
   stateMachine();
   
+  // Small delay to stabilize loop
+  delay(10);
 }
