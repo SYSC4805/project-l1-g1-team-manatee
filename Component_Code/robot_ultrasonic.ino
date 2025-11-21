@@ -1,11 +1,12 @@
+
 // Ultrasonic Sensor (HC-SR04) Example
 // Prints "Detected" if obstacle < 5 cm
 
-const int trigPin = 26;
-const int echoPin = 27;
+const int trigPin = 6;
+const int echoPin = 7;
 
-const int trigPin2 = 28;
-const int echoPin2 = 29;
+const int trigPin2 = 5;
+const int echoPin2 = 4;
 
 void setup() {
   Serial.begin(9600);
@@ -39,10 +40,13 @@ void loop() {
 
 
   // Check for obstacle within 5 cm
-  if ((distance > 0 && distance < 5) || (distance2 > 0 && distance2 < 5)) {
-    stopMotors();
+  if ((distance > 0 && distance < 50)||(distance2 > 0 && distance2 < 50)) {
+    Serial.println("stop");
+    Serial.print(millis());
+    
   } else {
   }
 
   delay(200);
 }
+
