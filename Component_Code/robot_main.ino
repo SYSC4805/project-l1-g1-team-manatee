@@ -179,6 +179,11 @@ void stateMachine(){
 void setup() {
   Serial.begin(9600); 
   Serial.println("Motor & Line Sensor Test Starting...");
+  uint32_t wdt_value = 3072; // 12 sec * 256Hz = 3072
+  // watchdog timer setup
+  WDT_Enable(WDT, WDT_MR_WDV(wdt_value) | WDT_MR_WDD(wdt_value) | WDT_MR_WDRSTEN);
+
+
   
   randomSeed(analogRead(A5)); // Use an unconnected pin for random seed
 
@@ -196,7 +201,10 @@ void loop() {
   readLineSensors();
   
   stateMachine();
-  
+  WDT_Restart(WDT); // Add restart inside the state machine if needed
+
   // Small delay to stabilize loop
   delay(10);
+
 }
+
