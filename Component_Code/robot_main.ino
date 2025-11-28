@@ -273,7 +273,11 @@ void stateMachine(){
 void setup() {
   Serial.begin(9600); 
   Serial.println("Motor & Line Sensor Test Starting...");
-  
+    
+  // 3072 corresponds to approx 12 seconds (12s * 256Hz)
+  uint32_t wdt_value = 3072;
+  WDT_Enable(WDT, WDT_MR_WDV(wdt_value) | WDT_MR_WDD(wdt_value) | WDT_MR_WDRSTEN);
+    
   randomSeed(analogRead(A5)); // Use an unconnected pin for random seed
 
   // Motor Pins Setup
@@ -324,9 +328,10 @@ void loop() {
     
   readLineSensors();
 
-  
+  WDT_Restart(WDT);
   stateMachine();
   
   // Small delay to stabilize loop
   delay(10);
 }
+
