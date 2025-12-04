@@ -145,8 +145,7 @@ void checkBorders(){
     
     borderTriggered = 0; 
 
-    // Logic: Assuming HIGHER value means LINE DETECTED (Black line usually gives high analog value on some sensors)
-    // If your sensor gives LOW value on black line, change '>' to '<'
+    
     if ((leftValue > BORDER_THRESHOLD) || (leftValue2 > BORDER_THRESHOLD)) {
         borderTriggered = 1; // Left
     } else if ((rightValue > BORDER_THRESHOLD)|| (rightValue2 > BORDER_THRESHOLD)){
@@ -334,5 +333,6 @@ void loop() {
   // Small delay to stabilize loop
   delay(10);
 }
+
 
 
