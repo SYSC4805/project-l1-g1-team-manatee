@@ -174,7 +174,7 @@ bool checkObstacles(){
     }
 
     // 2. IR Sensor
-    if ((digitalRead(sensorPin_IR) == LOW) || (digitalRead(sensorPin_IR2) == LOW)) { // 假设 LOW 意味着检测到障碍物
+    if ((digitalRead(sensorPin_IR) == LOW) || (digitalRead(sensorPin_IR2) == LOW)) { 
         return true;
     }
 
@@ -334,4 +334,5 @@ void loop() {
   // Small delay to stabilize loop
   delay(10);
 }
+
 
